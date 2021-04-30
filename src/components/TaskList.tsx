@@ -1,29 +1,76 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
+import {v4 as uuidv4} from 'uuid';
 import '../styles/tasklist.scss'
 
 import { FiTrash, FiCheckSquare } from 'react-icons/fi'
 
+
 interface Task {
-  id: number;
+  id: string;
   title: string;
-  isComplete: boolean;
+  isComplete?: boolean;
 }
+
 
 export function TaskList() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
-
+  useEffect(()=>{
+    const localTasks = localStorage.getItem('@tasks:my-tasks/');
+    localTasks !== null && localTasks !== " "  ? setTasks(state => [...state,JSON.parse(localTasks)]) : tasks;
+    
+   
+  },[])
+  
   function handleCreateNewTask() {
     // Crie uma nova task com um id random, não permita criar caso o título seja vazio.
+    
+    if(newTaskTitle !== null && newTaskTitle !== " ") {
+      const id = uuidv4();
+      const newTask = { 
+        id,
+        title: newTaskTitle,
+        isComplete: false,
+
+      }
+      setTasks(state => [...state, newTask])
+      const prevTasks = tasks;
+      localStorage.setItem('@tasks:my-tasks/',JSON.stringify(prevTasks));
+      
+//      console.log(localStorage.getItem('@tasks:my-tasks'))
+    }
+    
+
+
+
   }
 
-  function handleToggleTaskCompletion(id: number) {
+  function handleToggleTaskCompletion(id: string) {
     // Altere entre `true` ou `false` o campo `isComplete` de uma task com dado ID
-  }
+    let taskState = tasks ;
+    
+    taskState = taskState.map(t => t.id === id ? {
+      ...t, isComplete: !t.isComplete} : t);
+      setTasks(taskState);
+    }
+    
+ 
+  
+    
+  
 
-  function handleRemoveTask(id: number) {
+  function handleRemoveTask(id: string) {
     // Remova uma task da listagem pelo ID
+    
+    
+    localStorage.removeItem(`@tasks:my-tasks/${id}`)
+    setTasks(tasks.filter( t => t.id !== id))
+    
+
+
+    
+
   }
 
   return (
@@ -46,7 +93,7 @@ export function TaskList() {
 
       <main>
         <ul>
-          {tasks.map(task => (
+          {tasks && tasks.map(task => (
             <li key={task.id}>
               <div className={task.isComplete ? 'completed' : ''} data-testid="task" >
                 <label className="checkbox-container">
@@ -71,4 +118,8 @@ export function TaskList() {
       </main>
     </section>
   )
+}
+
+function uuid() {
+  throw new Error('Function not implemented.');
 }
